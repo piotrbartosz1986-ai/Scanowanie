@@ -4,146 +4,608 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#0b0d10">
-<title>Skaner kodów V3 – strefa + focus</title>
+<title>Skaner kodów V3.1</title>
+
 <style>
-:root{--bg:#0b0d10;--panel:#14181d;--panel2:#0f1317;--line:#29313a;--text:#f5f7fa;--muted:#9aa5b1;--green:#36d27f;--red:#ff6969;--yellow:#ffd166}
-*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-header{position:sticky;top:0;z-index:30;padding:12px 14px;background:rgba(11,13,16,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
-.head{max-width:760px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}h1{font-size:17px;margin:0}
-.state{font-size:11px;font-weight:900;border-radius:999px;padding:6px 9px;background:#20262d;color:var(--muted);white-space:nowrap}.state.on{background:rgba(54,210,127,.13);color:var(--green)}
-main{max-width:760px;margin:auto;padding:12px 12px 32px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
-.title{font-size:14px;font-weight:850;margin-bottom:9px}.muted{font-size:12px;color:var(--muted);line-height:1.45}
-.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mode{position:relative;display:block;cursor:pointer;border:1px solid var(--line);background:var(--panel2);border-radius:14px;padding:11px;min-height:92px}
-.mode input{position:absolute;opacity:0}.mode:has(input:checked){border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}.mode strong{display:block;font-size:14px;margin-bottom:5px}.mode small{display:block;font-size:11px;color:var(--muted);line-height:1.35}
-.default{display:inline-block;margin-top:7px;font-size:10px;padding:3px 6px;border-radius:999px;background:rgba(54,210,127,.12);color:var(--green);font-weight:850}
-button{border:1px solid var(--line);background:#1a2026;color:var(--text);border-radius:12px;min-height:44px;padding:9px 11px;font-weight:800;font-size:13px}button.primary{background:var(--green);color:#07140d;border-color:transparent}button:disabled{opacity:.42}
-.toolbar{display:grid;grid-template-columns:1.5fr 1fr;gap:8px;margin-bottom:10px}
-.cameraVisible{position:relative;overflow:hidden;border-radius:16px;background:#000;border:1px solid var(--line);margin-bottom:10px}.cameraVisible video{width:100%;height:auto;display:block}
-.cameraHidden{position:fixed!important;left:-10000px!important;top:0!important;width:420px!important;opacity:0!important;pointer-events:none!important}.cameraHidden video{width:420px;height:auto;display:block}
-.target{pointer-events:none;position:absolute;left:7%;right:7%;top:37%;height:26%;border:2px solid #fff;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.48)}.target:after{content:"";position:absolute;left:7%;right:7%;top:50%;height:2px;background:var(--green)}
-.zoneLabel{position:absolute;left:50%;top:calc(37% - 28px);transform:translateX(-50%);font-size:10px;font-weight:900;background:rgba(0,0,0,.7);padding:5px 8px;border-radius:999px}
-.liveCard{text-align:center;padding:18px 12px;background:linear-gradient(180deg,#151b20,#101418);border:1px solid var(--line);border-radius:16px;margin-bottom:10px}.pulse{width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block;margin-right:7px;box-shadow:0 0 0 5px rgba(54,210,127,.09)}
-.scanActive{font-size:11px;font-weight:900;letter-spacing:.08em;color:var(--green)}.lastLabel{font-size:10px;color:var(--muted);margin-top:14px;text-transform:uppercase;letter-spacing:.08em}.lastCode{min-height:36px;margin-top:5px;font:900 21px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all}.lastFormat{font-size:11px;color:var(--muted);margin-top:4px}
-.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.row+.row{margin-top:10px}input[type=range]{width:58%}select{background:#0e1216;color:#fff;border:1px solid var(--line);border-radius:9px;padding:7px}
-.status{font-size:12px;color:var(--muted);line-height:1.45;margin-top:9px}.ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}
-.focusBox{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}.focusBox.show{display:block}.focusStatus{font-size:11px;color:var(--muted);margin-top:8px}.summary{display:flex;justify-content:space-between;align-items:end}.counter{font-size:34px;font-weight:900;line-height:1}
-.list{display:flex;flex-direction:column;gap:7px;margin-top:10px}.item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}.lp,.time,.fmt{font-size:10px;color:var(--muted)}.code{font:800 15px/1.25 ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all}.fmt{border:1px solid var(--line);border-radius:999px;padding:4px 6px}
-details{margin-top:10px}summary{font-size:11px;color:var(--muted);cursor:pointer}pre{white-space:pre-wrap;word-break:break-word;font-size:10px;color:#ccd3da}.note{font-size:11px;color:var(--muted);padding:8px 10px;border:1px dashed var(--line);border-radius:10px;margin-top:9px}
+:root{
+  --bg:#0b0d10;
+  --panel:#14181d;
+  --panel2:#0f1317;
+  --line:#29313a;
+  --text:#f5f7fa;
+  --muted:#9aa5b1;
+  --green:#36d27f;
+  --red:#ff6969;
+  --yellow:#ffd166;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100dvh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:20;
+  padding:12px;
+  background:rgba(11,13,16,.96);
+  border-bottom:1px solid var(--line);
+}
+
+.head{
+  max-width:760px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+h1{
+  font-size:17px;
+  margin:0;
+}
+
+.state{
+  font-size:11px;
+  font-weight:900;
+  padding:6px 9px;
+  border-radius:999px;
+  background:#20262d;
+  color:var(--muted);
+}
+
+.state.on{
+  background:rgba(54,210,127,.13);
+  color:var(--green);
+}
+
+main{
+  max-width:760px;
+  margin:auto;
+  padding:12px 12px 30px;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:10px;
+}
+
+.title{
+  font-weight:850;
+  font-size:14px;
+  margin-bottom:9px;
+}
+
+.muted{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.modes{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.mode{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  border-radius:14px;
+  padding:11px;
+  cursor:pointer;
+}
+
+.mode input{
+  margin-right:5px;
+}
+
+.mode strong{
+  font-size:14px;
+}
+
+.mode small{
+  display:block;
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.35;
+}
+
+.mode.selected{
+  border-color:var(--green);
+  box-shadow:0 0 0 1px var(--green) inset;
+}
+
+.default{
+  display:inline-block;
+  margin-top:7px;
+  font-size:10px;
+  padding:3px 6px;
+  border-radius:999px;
+  background:rgba(54,210,127,.12);
+  color:var(--green);
+  font-weight:900;
+}
+
+button{
+  border:1px solid var(--line);
+  background:#1a2026;
+  color:var(--text);
+  border-radius:12px;
+  min-height:44px;
+  padding:9px 11px;
+  font-weight:800;
+  font-size:13px;
+}
+
+button.primary{
+  background:var(--green);
+  color:#07140d;
+  border-color:transparent;
+}
+
+button:disabled{
+  opacity:.42;
+}
+
+.toolbar{
+  display:grid;
+  grid-template-columns:1.5fr 1fr;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.cameraVisible{
+  position:relative;
+  overflow:hidden;
+  border-radius:16px;
+  background:#000;
+  border:1px solid var(--line);
+  margin-bottom:10px;
+}
+
+.cameraVisible video{
+  width:100%;
+  display:block;
+}
+
+.cameraHidden{
+  position:fixed;
+  left:-9999px;
+  top:0;
+  width:640px;
+  height:360px;
+  overflow:hidden;
+  opacity:.01;
+  pointer-events:none;
+}
+
+.cameraHidden video{
+  width:640px;
+  height:360px;
+  object-fit:cover;
+}
+
+.target{
+  pointer-events:none;
+  position:absolute;
+  left:8%;
+  right:8%;
+  top:37%;
+  height:26%;
+  border:2px solid #fff;
+  border-radius:12px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.48);
+}
+
+.target:after{
+  content:"";
+  position:absolute;
+  left:7%;
+  right:7%;
+  top:50%;
+  height:2px;
+  background:var(--green);
+}
+
+.zoneLabel{
+  position:absolute;
+  left:50%;
+  top:calc(37% - 28px);
+  transform:translateX(-50%);
+  font-size:10px;
+  font-weight:900;
+  background:rgba(0,0,0,.7);
+  padding:5px 8px;
+  border-radius:999px;
+}
+
+.liveCard{
+  text-align:center;
+  padding:18px 12px;
+  background:linear-gradient(180deg,#151b20,#101418);
+  border:1px solid var(--line);
+  border-radius:16px;
+  margin-bottom:10px;
+}
+
+.pulse{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:var(--green);
+  display:inline-block;
+  margin-right:7px;
+  box-shadow:0 0 0 5px rgba(54,210,127,.09);
+}
+
+.scanActive{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  color:var(--green);
+}
+
+.lastLabel{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:14px;
+  text-transform:uppercase;
+}
+
+.lastCode{
+  min-height:36px;
+  margin-top:5px;
+  font:900 21px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;
+  word-break:break-all;
+}
+
+.lastFormat{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:7px;
+  margin-bottom:10px;
+}
+
+.row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.row+.row{
+  margin-top:10px;
+}
+
+input[type=range]{
+  width:58%;
+}
+
+select{
+  background:#0e1216;
+  color:#fff;
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:7px;
+}
+
+.status{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.45;
+  margin-top:9px;
+}
+
+.ok{
+  color:var(--green);
+}
+
+.bad{
+  color:var(--red);
+}
+
+.warn{
+  color:var(--yellow);
+}
+
+.summary{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+}
+
+.counter{
+  font-size:34px;
+  font-weight:900;
+  line-height:1;
+}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  margin-top:10px;
+}
+
+.item{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  align-items:center;
+  padding:10px;
+  border-radius:12px;
+  background:var(--panel2);
+  border:1px solid var(--line);
+}
+
+.lp,
+.time,
+.fmt{
+  font-size:10px;
+  color:var(--muted);
+}
+
+.code{
+  font:800 15px/1.25 ui-monospace,SFMono-Regular,Consolas,monospace;
+  word-break:break-all;
+}
+
+.fmt{
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px 6px;
+}
+
+details{
+  margin-top:10px;
+}
+
+summary{
+  font-size:11px;
+  color:var(--muted);
+  cursor:pointer;
+}
+
+pre{
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-size:10px;
+  color:#ccd3da;
+}
+
+.note{
+  font-size:11px;
+  color:var(--muted);
+  padding:8px 10px;
+  border:1px dashed var(--line);
+  border-radius:10px;
+  margin-top:9px;
+}
 </style>
 </head>
+
 <body>
-<header><div class="head"><h1>Skaner kodów V3</h1><div class="state" id="topState">WYŁĄCZONY</div></div></header>
+
+<header>
+  <div class="head">
+    <h1>Skaner kodów V3.1</h1>
+    <div class="state" id="topState">WYŁĄCZONY</div>
+  </div>
+</header>
+
 <main>
 
 <section class="panel">
-<div class="title">Tryb pracy</div>
-<div class="modes">
 
-<label class="mode">
-<input type="radio" name="viewMode" value="hidden" checked>
-<strong>📋 Dane</strong>
-<small>Kamera pracuje w tle. Skanowana jest wyłącznie środkowa strefa obrazu.</small>
-<span class="default">DOMYŚLNY</span>
-</label>
+  <div class="title">Tryb pracy</div>
 
-<label class="mode">
-<input type="radio" name="viewMode" value="visible">
-<strong>📷 Kamera</strong>
-<small>Podgląd aparatu. Tylko kod wewnątrz jasnej ramki trafia do detektora.</small>
-</label>
+  <div class="modes">
 
-</div>
+    <label class="mode selected" id="modeHiddenLabel">
+      <input type="radio" name="viewMode" value="hidden" checked>
+      <strong>📋 Dane</strong>
+
+      <small>
+        Kamera działa w tle.
+        Detektor analizuje tylko środkową strefę.
+      </small>
+
+      <span class="default">
+        DOMYŚLNY
+      </span>
+    </label>
+
+    <label class="mode" id="modeVisibleLabel">
+      <input type="radio" name="viewMode" value="visible">
+
+      <strong>📷 Kamera</strong>
+
+      <small>
+        Podgląd aparatu.
+        Kod musi znaleźć się w jasnej ramce.
+      </small>
+    </label>
+
+  </div>
+
 </section>
 
 <div class="toolbar">
-<button class="primary" id="startBtn">Włącz skaner</button>
-<button id="refocusBtn" disabled>◎ Fokus centrum</button>
+
+  <button class="primary" id="startBtn">
+    Włącz skaner
+  </button>
+
+  <button id="refocusBtn" disabled>
+    ◎ Odśwież AF
+  </button>
+
 </div>
 
 <section id="hiddenUI" class="liveCard">
-<div>
-<span class="pulse"></span>
-<span class="scanActive" id="activeText">GOTOWY DO URUCHOMIENIA</span>
-</div>
-<div class="lastLabel">Ostatni kod</div>
-<div class="lastCode" id="lastCode">—</div>
-<div class="lastFormat" id="lastFormat">Kamera domyślnie ukryta</div>
+
+  <div>
+    <span class="pulse"></span>
+
+    <span class="scanActive" id="activeText">
+      GOTOWY DO URUCHOMIENIA
+    </span>
+  </div>
+
+  <div class="lastLabel">
+    Ostatni kod
+  </div>
+
+  <div class="lastCode" id="lastCode">
+    —
+  </div>
+
+  <div class="lastFormat" id="lastFormat">
+    Brak skanów
+  </div>
+
 </section>
 
 <section id="cameraWrap" class="cameraHidden">
-<video id="video" playsinline muted></video>
-<div class="target"></div>
-<div class="zoneLabel">SKANOWANA STREFA</div>
+
+  <video id="video" playsinline muted></video>
+
+  <div class="target"></div>
+
+  <div class="zoneLabel">
+    SKANOWANA STREFA
+  </div>
+
 </section>
 
 <div class="controls">
-<button id="torchBtn" disabled>🔦 Latarka</button>
-<button id="pauseBtn" disabled>⏸ Pauza</button>
-<button id="clearBtn">🗑 Wyczyść</button>
+
+  <button id="torchBtn" disabled>
+    🔦 Latarka
+  </button>
+
+  <button id="pauseBtn" disabled>
+    ⏸ Pauza
+  </button>
+
+  <button id="clearBtn">
+    🗑 Wyczyść
+  </button>
+
 </div>
 
 <section class="panel">
 
-<div class="row">
-<span class="muted">Zoom</span>
-<input id="zoom" type="range" min="1" max="1" step=".1" value="1" disabled>
-</div>
+  <div class="row">
+    <span class="muted">
+      Zoom
+    </span>
 
-<div class="row">
-<span class="muted">Blokada ponownego tego samego kodu</span>
-<select id="duplicateDelay">
-<option value="800">0,8 s</option>
-<option value="1500" selected>1,5 s</option>
-<option value="2500">2,5 s</option>
-<option value="4000">4 s</option>
-<option value="99999999">blokuj całkiem</option>
-</select>
-</div>
+    <input
+      id="zoom"
+      type="range"
+      min="1"
+      max="1"
+      step=".1"
+      value="1"
+      disabled
+    >
+  </div>
 
-<div id="focusBox" class="focusBox">
+  <div class="row">
 
-<div class="row">
-<span class="muted">Ręczna odległość fokusa</span>
-<input id="focusDistance" type="range" min="0" max="1" step=".01" value="0">
-</div>
+    <span class="muted">
+      Ten sam kod ponownie
+    </span>
 
-<div class="row">
-<span class="muted">Tryb</span>
-<button id="autoFocusBtn">AUTO ciągły</button>
-</div>
+    <select id="duplicateDelay">
 
-</div>
+      <option value="800">
+        po 0,8 s
+      </option>
 
-<div class="focusStatus" id="focusStatus">
-Focus: jeszcze nie sprawdzono możliwości aparatu.
-</div>
+      <option value="1500" selected>
+        po 1,5 s
+      </option>
 
-<div class="status" id="status">
-Skaner wyłączony.
-</div>
+      <option value="2500">
+        po 2,5 s
+      </option>
 
-<div class="note">
-V3 nie analizuje całej klatki. Do detektora wysyłany jest wyłącznie wycinek odpowiadający ramce skanowania.
-</div>
+      <option value="4000">
+        po 4 s
+      </option>
 
-<details>
-<summary>Diagnostyka kamery / focus</summary>
-<pre id="diag">Brak danych.</pre>
-</details>
+      <option value="99999999">
+        blokuj całkiem
+      </option>
+
+    </select>
+
+  </div>
+
+  <div class="status" id="status">
+    Skaner wyłączony.
+  </div>
+
+  <div class="note">
+    V3.1 analizuje tylko wycinek obrazu odpowiadający ramce.
+    Kod spoza tej strefy nie trafia do BarcodeDetector.
+  </div>
+
+  <details>
+
+    <summary>
+      Diagnostyka kamery
+    </summary>
+
+    <pre id="diag">Brak danych.</pre>
+
+  </details>
 
 </section>
 
 <section class="panel">
 
-<div class="summary">
-<div>
-<div class="muted">Zeskanowano</div>
-<div class="counter" id="counter">0</div>
-</div>
-<button id="csvBtn">Eksport CSV</button>
-</div>
+  <div class="summary">
 
-<div class="list" id="list"></div>
+    <div>
+
+      <div class="muted">
+        Zeskanowano
+      </div>
+
+      <div class="counter" id="counter">
+        0
+      </div>
+
+    </div>
+
+    <button id="csvBtn">
+      Eksport CSV
+    </button>
+
+  </div>
+
+  <div class="list" id="list"></div>
 
 </section>
 
@@ -152,141 +614,211 @@ V3 nie analizuje całej klatki. Do detektora wysyłany jest wyłącznie wycinek 
 </main>
 
 <script>
-(()=>{
+(function(){
 
-const ROI={
-    x:.07,
-    y:.37,
-    w:.86,
-    h:.26
+"use strict";
+
+var ROI = {
+    x:0.08,
+    y:0.37,
+    w:0.84,
+    h:0.26
 };
 
-const SCAN_INTERVAL_MS=75;
+var SCAN_INTERVAL_MS = 90;
 
-const $=id=>document.getElementById(id);
+function $(id){
+    return document.getElementById(id);
+}
 
-const video=$('video');
-const cameraWrap=$('cameraWrap');
-const hiddenUI=$('hiddenUI');
+var video = $("video");
+var cameraWrap = $("cameraWrap");
+var hiddenUI = $("hiddenUI");
 
-const startBtn=$('startBtn');
-const refocusBtn=$('refocusBtn');
-const torchBtn=$('torchBtn');
-const pauseBtn=$('pauseBtn');
-const clearBtn=$('clearBtn');
-const csvBtn=$('csvBtn');
+var startBtn = $("startBtn");
+var refocusBtn = $("refocusBtn");
+var torchBtn = $("torchBtn");
+var pauseBtn = $("pauseBtn");
+var clearBtn = $("clearBtn");
+var csvBtn = $("csvBtn");
 
-const zoom=$('zoom');
-const duplicateDelay=$('duplicateDelay');
+var zoom = $("zoom");
+var duplicateDelay = $("duplicateDelay");
 
-const status=$('status');
-const diag=$('diag');
-const list=$('list');
-const counter=$('counter');
+var statusEl = $("status");
+var diag = $("diag");
+var list = $("list");
+var counter = $("counter");
 
-const lastCode=$('lastCode');
-const lastFormat=$('lastFormat');
+var lastCode = $("lastCode");
+var lastFormat = $("lastFormat");
+var activeText = $("activeText");
+var topState = $("topState");
 
-const activeText=$('activeText');
-const topState=$('topState');
+var roiCanvas = $("roiCanvas");
 
-const roiCanvas=$('roiCanvas');
+var modeHiddenLabel = $("modeHiddenLabel");
+var modeVisibleLabel = $("modeVisibleLabel");
 
-const focusStatus=$('focusStatus');
-const focusBox=$('focusBox');
-const focusDistance=$('focusDistance');
-const autoFocusBtn=$('autoFocusBtn');
+var stream = null;
+var track = null;
+var detector = null;
 
-let stream=null;
-let track=null;
-let detector=null;
+var running = false;
+var paused = false;
+var busy = false;
+var torchOn = false;
 
-let running=false;
-let paused=false;
-let busy=false;
-let torchOn=false;
+var rafId = 0;
+var lastDetectionRun = 0;
 
-let raf=0;
-let lastLoop=0;
+var caps = {};
 
-let caps={};
-let supportedConstraints={};
+var scans = [];
 
-const scans=[];
+var lastAcceptedAt = new Map();
 
-const acceptedAtByCode=new Map();
-
-const formats=[
-'ean_13',
-'ean_8',
-'code_128',
-'code_39',
-'code_93',
-'upc_a',
-'upc_e',
-'itf',
-'codabar',
-'qr_code',
-'data_matrix'
+var wantedFormats = [
+    "ean_13",
+    "ean_8",
+    "code_128",
+    "code_39",
+    "code_93",
+    "upc_a",
+    "upc_e",
+    "itf",
+    "codabar",
+    "qr_code",
+    "data_matrix"
 ];
 
-const currentMode=()=>{
-    return document.querySelector(
-        'input[name=viewMode]:checked'
-    ).value;
-};
+function currentMode(){
+
+    var element =
+        document.querySelector(
+            'input[name="viewMode"]:checked'
+        );
+
+    return element
+        ? element.value
+        : "hidden";
+
+}
 
 function applyMode(){
 
-    if(currentMode()==='hidden'){
+    var hidden =
+        currentMode() === "hidden";
 
-        cameraWrap.className='cameraHidden';
-        hiddenUI.style.display='';
+    cameraWrap.className =
+        hidden
+        ? "cameraHidden"
+        : "cameraVisible";
 
-    }else{
+    hiddenUI.style.display =
+        hidden
+        ? ""
+        : "none";
 
-        cameraWrap.className='cameraVisible';
-        hiddenUI.style.display='none';
+    modeHiddenLabel
+        .classList
+        .toggle(
+            "selected",
+            hidden
+        );
 
-    }
+    modeVisibleLabel
+        .classList
+        .toggle(
+            "selected",
+            !hidden
+        );
+
 }
 
 document
-.querySelectorAll('input[name=viewMode]')
-.forEach(x=>x.addEventListener('change',applyMode));
+.querySelectorAll(
+    'input[name="viewMode"]'
+)
+.forEach(function(element){
+
+    element.addEventListener(
+        "change",
+        applyMode
+    );
+
+});
 
 applyMode();
 
-function setStatus(text,cls=''){
+function setStatus(text, cssClass){
 
-    status.className='status '+cls;
-    status.textContent=text;
+    statusEl.className =
+        "status"
+        +
+        (
+            cssClass
+            ? " " + cssClass
+            : ""
+        );
 
-}
-
-function setTop(on){
-
-    topState.textContent=
-        on
-        ? (paused?'PAUZA':'SKANOWANIE')
-        : 'WYŁĄCZONY';
-
-    topState.className=
-        'state'+(on&&!paused?' on':'');
+    statusEl.textContent =
+        text;
 
 }
 
-function esc(value){
+function setTopState(){
 
-    return String(value).replace(
+    if(!running){
+
+        topState.textContent =
+            "WYŁĄCZONY";
+
+        topState.className =
+            "state";
+
+        return;
+
+    }
+
+    if(paused){
+
+        topState.textContent =
+            "PAUZA";
+
+        topState.className =
+            "state";
+
+        return;
+
+    }
+
+    topState.textContent =
+        "SKANOWANIE";
+
+    topState.className =
+        "state on";
+
+}
+
+function escapeHtml(value){
+
+    return String(value)
+    .replace(
         /[&<>"']/g,
-        c=>({
-            '&':'&amp;',
-            '<':'&lt;',
-            '>':'&gt;',
-            '"':'&quot;',
-            "'":'&#039;'
-        }[c])
+        function(character){
+
+            return {
+
+                "&":"&amp;",
+                "<":"&lt;",
+                ">":"&gt;",
+                '"':"&quot;",
+                "'":"&#039;"
+
+            }[character];
+
+        }
     );
 
 }
@@ -295,19 +827,1479 @@ function beep(){
 
     try{
 
-        const C=
+        var AudioContextClass =
             window.AudioContext ||
             window.webkitAudioContext;
 
-        const ctx=new C();
+        if(!AudioContextClass){
+            return;
+        }
 
-        const oscillator=
-            ctx.createOscillator();
+        var context =
+            new AudioContextClass();
 
-        const gain=
-            ctx.createGain();
+        var oscillator =
+            context.createOscillator();
 
-        oscillator.frequency.value=1100;
-        gain.gain.value=.07;
+        var gain =
+            context.createGain();
 
-       
+        oscillator.frequency.value =
+            1050;
+
+        gain.gain.value =
+            0.06;
+
+        oscillator.connect(
+            gain
+        );
+
+        gain.connect(
+            context.destination
+        );
+
+        oscillator.start();
+
+        oscillator.stop(
+            context.currentTime
+            +
+            0.06
+        );
+
+        oscillator.onended =
+            function(){
+
+                context.close();
+
+            };
+
+    }catch(error){}
+
+}
+
+function feedback(){
+
+    try{
+
+        if(navigator.vibrate){
+
+            navigator.vibrate(
+                45
+            );
+
+        }
+
+    }catch(error){}
+
+    beep();
+
+}
+
+function acceptScan(
+    rawValue,
+    format
+){
+
+    var value =
+        String(
+            rawValue || ""
+        ).trim();
+
+    if(!value){
+        return;
+    }
+
+    var now =
+        Date.now();
+
+    var lockMs =
+        Number(
+            duplicateDelay.value
+        );
+
+    var previous =
+        lastAcceptedAt.get(
+            value
+        );
+
+    /*
+       Twarda blokada identycznego kodu.
+
+       Jeżeli kod 590... został zapisany
+       300 ms temu, a blokada wynosi 1500 ms,
+       drugi odczyt jest ignorowany.
+    */
+
+    if(
+        previous !== undefined
+        &&
+        (
+            now -
+            previous
+        ) < lockMs
+    ){
+
+        return;
+
+    }
+
+    lastAcceptedAt.set(
+        value,
+        now
+    );
+
+    var row = {
+
+        code:value,
+
+        format:
+            format ||
+            "kod",
+
+        date:
+            new Date()
+
+    };
+
+    scans.unshift(
+        row
+    );
+
+    lastCode.textContent =
+        row.code;
+
+    lastFormat.textContent =
+        row.format
+        +
+        " • "
+        +
+        row.date
+        .toLocaleTimeString(
+            "pl-PL"
+        );
+
+    feedback();
+
+    renderList();
+
+}
+
+function renderList(){
+
+    counter.textContent =
+        scans.length;
+
+    list.innerHTML =
+        scans.map(
+            function(scan,index){
+
+                return ''
+
+                +
+                '<div class="item">'
+
+                +
+                '<div class="lp">'
+                +
+                (
+                    scans.length -
+                    index
+                )
+                +
+                '</div>'
+
+                +
+                '<div>'
+
+                +
+                '<div class="code">'
+                +
+                escapeHtml(
+                    scan.code
+                )
+                +
+                '</div>'
+
+                +
+                '<div class="time">'
+                +
+                scan.date
+                .toLocaleDateString(
+                    "pl-PL"
+                )
+                +
+                ' • '
+                +
+                scan.date
+                .toLocaleTimeString(
+                    "pl-PL"
+                )
+                +
+                '</div>'
+
+                +
+                '</div>'
+
+                +
+                '<div class="fmt">'
+                +
+                escapeHtml(
+                    scan.format
+                )
+                +
+                '</div>'
+
+                +
+                '</div>';
+
+            }
+
+        ).join("");
+
+}
+
+function updateDiagnostics(extra){
+
+    if(!track){
+        return;
+    }
+
+    var settings = {};
+    var constraints = {};
+
+    try{
+
+        if(track.getSettings){
+
+            settings =
+                track.getSettings();
+
+        }
+
+        if(track.getConstraints){
+
+            constraints =
+                track.getConstraints();
+
+        }
+
+    }catch(error){}
+
+    diag.textContent =
+        JSON.stringify(
+            {
+
+                capabilities:
+                    caps,
+
+                settings:
+                    settings,
+
+                constraints:
+                    constraints,
+
+                extra:
+                    extra || {}
+
+            },
+            null,
+            2
+        );
+
+}
+
+async function tryContinuousAutofocus(){
+
+    if(
+        !track ||
+        !caps
+    ){
+
+        return false;
+
+    }
+
+    var modes =
+        Array.isArray(
+            caps.focusMode
+        )
+        ?
+        caps.focusMode
+        :
+        [];
+
+    if(
+        modes.indexOf(
+            "continuous"
+        ) === -1
+    ){
+
+        return false;
+
+    }
+
+    try{
+
+        await track
+        .applyConstraints({
+
+            advanced:[
+                {
+                    focusMode:
+                        "continuous"
+                }
+            ]
+
+        });
+
+        updateDiagnostics({
+
+            focusAction:
+                "continuous"
+
+        });
+
+        return true;
+
+    }catch(error){
+
+        updateDiagnostics({
+
+            focusError:
+                String(error)
+
+        });
+
+        return false;
+
+    }
+
+}
+
+async function refreshAutofocus(){
+
+    if(!track){
+        return;
+    }
+
+    var modes =
+        Array.isArray(
+            caps.focusMode
+        )
+        ?
+        caps.focusMode
+        :
+        [];
+
+    var didSomething =
+        false;
+
+    try{
+
+        if(
+            modes.indexOf(
+                "single-shot"
+            ) !== -1
+        ){
+
+            await track
+            .applyConstraints({
+
+                advanced:[
+                    {
+                        focusMode:
+                            "single-shot"
+                    }
+                ]
+
+            });
+
+            didSomething =
+                true;
+
+            await new Promise(
+                function(resolve){
+
+                    setTimeout(
+                        resolve,
+                        450
+                    );
+
+                }
+            );
+
+        }
+
+        if(
+            modes.indexOf(
+                "continuous"
+            ) !== -1
+        ){
+
+            await track
+            .applyConstraints({
+
+                advanced:[
+                    {
+                        focusMode:
+                            "continuous"
+                    }
+                ]
+
+            });
+
+            didSomething =
+                true;
+
+        }
+
+        if(didSomething){
+
+            setStatus(
+                "Autofocus odświeżony.",
+                "ok"
+            );
+
+        }else{
+
+            setStatus(
+                "Chrome nie udostępnia sterowania focusem dla tej kamery. Działa autofocus systemowy.",
+                "warn"
+            );
+
+        }
+
+        updateDiagnostics({
+
+            focusRefresh:
+                didSomething
+
+        });
+
+    }catch(error){
+
+        setStatus(
+            "Telefon odrzucił próbę sterowania focusem.",
+            "warn"
+        );
+
+        updateDiagnostics({
+
+            focusRefreshError:
+                String(error)
+
+        });
+
+    }
+
+}
+
+async function tuneCamera(){
+
+    caps = {};
+
+    try{
+
+        if(track.getCapabilities){
+
+            caps =
+                track.getCapabilities()
+                ||
+                {};
+
+        }
+
+    }catch(error){}
+
+    await tryContinuousAutofocus();
+
+    try{
+
+        if(
+            caps.zoom
+            &&
+            typeof
+            caps.zoom.min
+            ===
+            "number"
+        ){
+
+            zoom.disabled =
+                false;
+
+            zoom.min =
+                caps.zoom.min;
+
+            zoom.max =
+                caps.zoom.max;
+
+            zoom.step =
+                caps.zoom.step
+                ||
+                0.1;
+
+            var selectedZoom =
+                Math.max(
+                    caps.zoom.min,
+                    Math.min(
+                        caps.zoom.max,
+                        1.4
+                    )
+                );
+
+            zoom.value =
+                selectedZoom;
+
+            await track
+            .applyConstraints({
+
+                advanced:[
+                    {
+                        zoom:
+                            Number(
+                                selectedZoom
+                            )
+                    }
+                ]
+
+            });
+
+        }else{
+
+            zoom.disabled =
+                true;
+
+        }
+
+    }catch(error){
+
+        zoom.disabled =
+            true;
+
+    }
+
+    torchBtn.disabled =
+        !caps.torch;
+
+    updateDiagnostics();
+
+}
+
+async function createDetector(){
+
+    if(
+        !(
+            "BarcodeDetector"
+            in window
+        )
+    ){
+
+        throw new Error(
+            "BarcodeDetector nie jest dostępny w tej przeglądarce."
+        );
+
+    }
+
+    var supported =
+        wantedFormats.slice();
+
+    try{
+
+        if(
+            BarcodeDetector
+            .getSupportedFormats
+        ){
+
+            var available =
+                await BarcodeDetector
+                .getSupportedFormats();
+
+            supported =
+                wantedFormats
+                .filter(
+                    function(format){
+
+                        return (
+                            available.indexOf(
+                                format
+                            )
+                            !==
+                            -1
+                        );
+
+                    }
+                );
+
+        }
+
+    }catch(error){}
+
+    detector =
+        new BarcodeDetector({
+
+            formats:
+                supported
+
+        });
+
+}
+
+async function startScanner(){
+
+    if(running){
+
+        stopScanner();
+
+        return;
+
+    }
+
+    if(
+        !navigator.mediaDevices
+        ||
+        !navigator.mediaDevices
+        .getUserMedia
+    ){
+
+        setStatus(
+            "Ta przeglądarka nie ma dostępu do getUserMedia.",
+            "bad"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        setStatus(
+            "Uruchamiam kamerę…"
+        );
+
+        await createDetector();
+
+        stream =
+            await navigator
+            .mediaDevices
+            .getUserMedia({
+
+                audio:false,
+
+                video:{
+
+                    facingMode:{
+                        ideal:
+                            "environment"
+                    },
+
+                    width:{
+                        ideal:
+                            1920
+                    },
+
+                    height:{
+                        ideal:
+                            1080
+                    },
+
+                    frameRate:{
+                        ideal:
+                            30
+                    }
+
+                }
+
+            });
+
+        video.srcObject =
+            stream;
+
+        await video.play();
+
+        var tracks =
+            stream.getVideoTracks();
+
+        track =
+            tracks.length
+            ?
+            tracks[0]
+            :
+            null;
+
+        if(!track){
+
+            throw new Error(
+                "Nie znaleziono ścieżki wideo."
+            );
+
+        }
+
+        await tuneCamera();
+
+        running =
+            true;
+
+        paused =
+            false;
+
+        busy =
+            false;
+
+        startBtn.textContent =
+            "Wyłącz skaner";
+
+        pauseBtn.disabled =
+            false;
+
+        refocusBtn.disabled =
+            false;
+
+        pauseBtn.textContent =
+            "⏸ Pauza";
+
+        activeText.textContent =
+            "SKANOWANIE AKTYWNE";
+
+        setTopState();
+
+        setStatus(
+            "Skaner działa. Czytany jest tylko obszar ramki.",
+            "ok"
+        );
+
+        rafId =
+            requestAnimationFrame(
+                scanLoop
+            );
+
+    }catch(error){
+
+        console.error(
+            error
+        );
+
+        setStatus(
+            "Błąd uruchamiania: "
+            +
+            (
+                error &&
+                error.message
+                ?
+                error.message
+                :
+                error
+            ),
+            "bad"
+        );
+
+        stopScanner(
+            false
+        );
+
+    }
+
+}
+
+function stopScanner(
+    updateMessage
+){
+
+    if(
+        updateMessage
+        ===
+        undefined
+    ){
+
+        updateMessage =
+            true;
+
+    }
+
+    running =
+        false;
+
+    paused =
+        false;
+
+    busy =
+        false;
+
+    if(rafId){
+
+        cancelAnimationFrame(
+            rafId
+        );
+
+        rafId =
+            0;
+
+    }
+
+    if(stream){
+
+        try{
+
+            stream
+            .getTracks()
+            .forEach(
+                function(item){
+
+                    item.stop();
+
+                }
+            );
+
+        }catch(error){}
+
+    }
+
+    stream =
+        null;
+
+    track =
+        null;
+
+    detector =
+        null;
+
+    video.srcObject =
+        null;
+
+    torchOn =
+        false;
+
+    startBtn.textContent =
+        "Włącz skaner";
+
+    pauseBtn.textContent =
+        "⏸ Pauza";
+
+    pauseBtn.disabled =
+        true;
+
+    refocusBtn.disabled =
+        true;
+
+    torchBtn.disabled =
+        true;
+
+    zoom.disabled =
+        true;
+
+    activeText.textContent =
+        "GOTOWY DO URUCHOMIENIA";
+
+    setTopState();
+
+    if(updateMessage){
+
+        setStatus(
+            "Skaner wyłączony."
+        );
+
+    }
+
+}
+
+async function scanLoop(
+    timestamp
+){
+
+    if(!running){
+        return;
+    }
+
+    rafId =
+        requestAnimationFrame(
+            scanLoop
+        );
+
+    if(
+        paused
+        ||
+        busy
+        ||
+        !detector
+        ||
+        video.readyState < 2
+    ){
+
+        return;
+
+    }
+
+    if(
+        (
+            timestamp -
+            lastDetectionRun
+        )
+        <
+        SCAN_INTERVAL_MS
+    ){
+
+        return;
+
+    }
+
+    lastDetectionRun =
+        timestamp;
+
+    var videoWidth =
+        video.videoWidth;
+
+    var videoHeight =
+        video.videoHeight;
+
+    if(
+        !videoWidth
+        ||
+        !videoHeight
+    ){
+
+        return;
+
+    }
+
+    busy =
+        true;
+
+    try{
+
+        /*
+           PRAWDZIWA STREFA SKANOWANIA
+
+           Nie wysyłamy całej klatki
+           do BarcodeDetector.
+
+           Wycinamy jedynie środkowy fragment.
+        */
+
+        var sx =
+            Math.round(
+                videoWidth
+                *
+                ROI.x
+            );
+
+        var sy =
+            Math.round(
+                videoHeight
+                *
+                ROI.y
+            );
+
+        var sw =
+            Math.round(
+                videoWidth
+                *
+                ROI.w
+            );
+
+        var sh =
+            Math.round(
+                videoHeight
+                *
+                ROI.h
+            );
+
+        var outputWidth =
+            Math.min(
+                1280,
+                sw
+            );
+
+        var outputHeight =
+            Math.max(
+                140,
+                Math.round(
+                    outputWidth
+                    *
+                    (
+                        sh /
+                        sw
+                    )
+                )
+            );
+
+        if(
+            roiCanvas.width
+            !==
+            outputWidth
+        ){
+
+            roiCanvas.width =
+                outputWidth;
+
+        }
+
+        if(
+            roiCanvas.height
+            !==
+            outputHeight
+        ){
+
+            roiCanvas.height =
+                outputHeight;
+
+        }
+
+        var context =
+            roiCanvas
+            .getContext(
+                "2d",
+                {
+                    alpha:false
+                }
+            );
+
+        context.drawImage(
+
+            video,
+
+            sx,
+            sy,
+            sw,
+            sh,
+
+            0,
+            0,
+            outputWidth,
+            outputHeight
+
+        );
+
+        /*
+           Detektor dostaje WYŁĄCZNIE
+           obraz z ramki.
+        */
+
+        var found =
+            await detector.detect(
+                roiCanvas
+            );
+
+        if(
+            found
+            &&
+            found.length
+        ){
+
+            var centerX =
+                outputWidth / 2;
+
+            var centerY =
+                outputHeight / 2;
+
+            /*
+               Jeśli w ramce znajdują się
+               dwa kody, wybieramy ten
+               najbliżej środka.
+            */
+
+            found.sort(
+                function(a,b){
+
+                    function distance(
+                        item
+                    ){
+
+                        if(
+                            !item.boundingBox
+                        ){
+
+                            return 999999;
+
+                        }
+
+                        var barcodeX =
+                            item.boundingBox.x
+                            +
+                            item.boundingBox.width
+                            /
+                            2;
+
+                        var barcodeY =
+                            item.boundingBox.y
+                            +
+                            item.boundingBox.height
+                            /
+                            2;
+
+                        return Math.hypot(
+
+                            barcodeX
+                            -
+                            centerX,
+
+                            barcodeY
+                            -
+                            centerY
+
+                        );
+
+                    }
+
+                    return (
+                        distance(a)
+                        -
+                        distance(b)
+                    );
+
+                }
+            );
+
+            var best =
+                found[0];
+
+            if(
+                best
+                &&
+                best.rawValue
+            ){
+
+                acceptScan(
+                    best.rawValue,
+                    best.format || ""
+                );
+
+            }
+
+        }
+
+    }catch(error){
+
+        console.error(
+            "Błąd detekcji:",
+            error
+        );
+
+    }finally{
+
+        busy =
+            false;
+
+    }
+
+}
+
+startBtn.addEventListener(
+    "click",
+    startScanner
+);
+
+refocusBtn.addEventListener(
+    "click",
+    refreshAutofocus
+);
+
+pauseBtn.addEventListener(
+    "click",
+    function(){
+
+        if(!running){
+            return;
+        }
+
+        paused =
+            !paused;
+
+        pauseBtn.textContent =
+            paused
+            ?
+            "▶ Wznów"
+            :
+            "⏸ Pauza";
+
+        activeText.textContent =
+            paused
+            ?
+            "SKANOWANIE WSTRZYMANE"
+            :
+            "SKANOWANIE AKTYWNE";
+
+        setTopState();
+
+        setStatus(
+            paused
+            ?
+            "Skanowanie wstrzymane."
+            :
+            "Skanowanie wznowione.",
+            paused
+            ?
+            "warn"
+            :
+            "ok"
+        );
+
+    }
+);
+
+torchBtn.addEventListener(
+    "click",
+    async function(){
+
+        if(
+            !track
+            ||
+            !caps.torch
+        ){
+
+            return;
+
+        }
+
+        try{
+
+            torchOn =
+                !torchOn;
+
+            await track
+            .applyConstraints({
+
+                advanced:[
+                    {
+                        torch:
+                            torchOn
+                    }
+                ]
+
+            });
+
+            torchBtn.textContent =
+                torchOn
+                ?
+                "🔦 ON"
+                :
+                "🔦 Latarka";
+
+            updateDiagnostics({
+
+                torch:
+                    torchOn
+
+            });
+
+        }catch(error){
+
+            torchOn =
+                false;
+
+            setStatus(
+                "Nie udało się przełączyć latarki.",
+                "warn"
+            );
+
+        }
+
+    }
+);
+
+zoom.addEventListener(
+    "input",
+    async function(){
+
+        if(!track){
+            return;
+        }
+
+        try{
+
+            await track
+            .applyConstraints({
+
+                advanced:[
+                    {
+                        zoom:
+                            Number(
+                                zoom.value
+                            )
+                    }
+                ]
+
+            });
+
+            updateDiagnostics({
+
+                zoom:
+                    Number(
+                        zoom.value
+                    )
+
+            });
+
+        }catch(error){}
+
+    }
+);
+
+clearBtn.addEventListener(
+    "click",
+    function(){
+
+        scans.length =
+            0;
+
+        lastAcceptedAt.clear();
+
+        lastCode.textContent =
+            "—";
+
+        lastFormat.textContent =
+            "Brak skanów";
+
+        renderList();
+
+    }
+);
+
+csvBtn.addEventListener(
+    "click",
+    function(){
+
+        if(
+            !scans.length
+        ){
+
+            return;
+
+        }
+
+        var rows = [
+            [
+                "LP",
+                "Kod",
+                "Format",
+                "Data",
+                "Godzina"
+            ]
+        ];
+
+        scans
+        .slice()
+        .reverse()
+        .forEach(
+            function(
+                scan,
+                index
+            ){
+
+                rows.push([
+
+                    index + 1,
+
+                    scan.code,
+
+                    scan.format,
+
+                    scan.date
+                    .toLocaleDateString(
+                        "pl-PL"
+                    ),
+
+                    scan.date
+                    .toLocaleTimeString(
+                        "pl-PL"
+                    )
+
+                ]);
+
+            }
+        );
+
+        var csv =
+            "\uFEFF"
+            +
+            rows
+            .map(
+                function(row){
+
+                    return row
+                    .map(
+                        function(value){
+
+                            return '"'
+                            +
+                            String(value)
+                            .replace(
+                                /"/g,
+                                '""'
+                            )
+                            +
+                            '"';
+
+                        }
+                    )
+                    .join(";");
+
+                }
+            )
+            .join("\r\n");
+
+        var blob =
+            new Blob(
+                [csv],
+                {
+                    type:
+                        "text/csv;charset=utf-8"
+                }
+            );
+
+        var url =
+            URL.createObjectURL(
+                blob
+            );
+
+        var link =
+            document.createElement(
+                "a"
+            );
+
+        link.href =
+            url;
+
+        link.download =
+            "skany_"
+            +
+            new Date()
+            .toISOString()
+            .slice(0,19)
+            .replace(
+                /:/g,
+                "-"
+            )
+            +
+            ".csv";
+
+        link.click();
+
+        setTimeout(
+            function(){
+
+                URL.revokeObjectURL(
+                    url
+                );
+
+            },
+            1000
+        );
+
+    }
+);
+
+window.addEventListener(
+    "pagehide",
+    function(){
+
+        stopScanner(
+            false
+        );
+
+    }
+);
+
+})();
+</script>
+
+</body>
+</html>
